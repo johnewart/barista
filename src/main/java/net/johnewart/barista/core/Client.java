@@ -1,6 +1,15 @@
 package net.johnewart.barista.core;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import net.johnewart.barista.utils.ChefKeyGenerator;
+import net.johnewart.barista.utils.PEMPair;
+import org.bouncycastle.openssl.PEMWriter;
+
+import java.io.IOException;
+import java.io.StringWriter;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
 
 public class Client {
     @JsonProperty("name")
@@ -16,7 +25,7 @@ public class Client {
     String chefType = "client";
 
     @JsonProperty("validator")
-    boolean validator;
+    Boolean validator;
 
     @JsonProperty("orgname")
     String orgName;
@@ -25,7 +34,7 @@ public class Client {
     String publicKey;
 
     @JsonProperty("admin")
-    boolean admin;
+    Boolean admin;
 
     @JsonProperty
     String certificate;
@@ -34,7 +43,7 @@ public class Client {
     String privateKey;
 
     public Client() {
-        privateKey = "-----BEGIN RSA PRIVATE KEY-----\n" +
+      /*  privateKey = "-----BEGIN RSA PRIVATE KEY-----\n" +
                 "MIIEowIBAAKCAQEAtBr5Vq2X8sP12K7EP1SyWHaCglGdoUdiR37TQwRQ8l0NvpGq\n" +
                 "GQNHqfxpZTwTAQAusuJo7BqNC+8A2X7weteLOQRB91yXKkwWVyucaDIReTSb4/iP\n" +
                 "sWkQJqSM2gMVHmWCXYNgPIBta37hzq1TddSDzgCisyb/zzZpqxKUaC3nUlj/q4E/\n" +
@@ -60,12 +69,12 @@ public class Client {
                 "mx5xAoGBAJdDRA8SxuoSP0TainOkvWcHWRxG1WFi7prez5GVJ0Cj+VhCfW2gmLGP\n" +
                 "U8ZZq5bXtT4BWTUx/KO8anpjFq5jvqgnapXPgi7SHke89iXSV7xwjyP2sJDw08St\n" +
                 "gXelbeFwOfeBs55eXEQYCyFs4lzDSdm+8FKxAnxOYG5AX/VcpR3D\n" +
-                "-----END RSA PRIVATE KEY-----";
+                "-----END RSA PRIVATE KEY-----";*/
+
     }
 
     public Client(String s) {
-        name = "client";
-        nodeName = "clientNode";
+        name = s;
         validator = true;
         orgName = "Chef metal \\m/";
         publicKey = "FOO";
@@ -73,4 +82,86 @@ public class Client {
         certificate = "CERT";
     }
 
+    public Client(Client other) {
+        this.name = other.name;
+        this.nodeName = other.nodeName;
+        this.validator = other.validator;
+        this.orgName = other.orgName;
+        this.publicKey = other.publicKey;
+        this.admin = other.admin;
+        this.certificate = other.certificate;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void update(Client other) {
+        if(other.name != null)
+            this.name = other.name;
+        if(other.nodeName != null)
+            this.nodeName = other.nodeName;
+        if(other.orgName != null)
+            this.orgName = other.orgName;
+        if(other.privateKey != null && !other.privateKey.isEmpty())
+            this.privateKey = other.privateKey;
+        if(other.publicKey != null && !other.publicKey.isEmpty())
+            this.publicKey = other.publicKey;
+        if(other.admin != null)
+            this.admin = other.admin;
+        if(other.certificate != null)
+            this.certificate = other.certificate;
+
+        if(other.validator != null)
+            this.validator = other.validator;
+    }
+
+    public String getPrivateKey() {
+        return privateKey;
+    }
+
+    public String getPublicKey() {
+        return publicKey;
+    }
+
+    public void generateKeys() {
+        PEMPair pemPair = ChefKeyGenerator.generateKeyPairAsPEM();
+        this.privateKey = new String(pemPair.privateKeyPEM);
+        this.publicKey = new String(pemPair.publicKeyPEM);
+        /*
+        try {
+            KeyPairGenerator generator;
+            generator = KeyPairGenerator.getInstance("RSA");
+            generator.initialize(1024);
+            KeyPair keyPair = generator.genKeyPair();
+            try {
+                StringWriter stringWriter = new StringWriter();
+                PEMWriter pemWriter = new PEMWriter(stringWriter);
+                pemWriter.writeObject( keyPair.getPrivate());
+                pemWriter.close();
+                String privateKeyString = stringWriter.toString();
+                this.privateKey = privateKeyString;
+
+                stringWriter = new StringWriter();
+                pemWriter = new PEMWriter(stringWriter);
+                pemWriter.writeObject( keyPair.getPublic());
+                pemWriter.close();
+                String publicKeyString = stringWriter.toString();
+                this.publicKey = publicKeyString;
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }*/
+    }
+
+    public boolean isAdmin() {
+        return admin == null ? false : admin.booleanValue();
+    }
+
+    public boolean isValidator() {
+        return validator == null ? false : validator.booleanValue();
+    }
 }

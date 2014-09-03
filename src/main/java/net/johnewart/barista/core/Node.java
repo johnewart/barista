@@ -49,6 +49,16 @@ public class Node {
 
     public Node() { }
 
+    public Node(Node other) {
+        this.name = other.name;
+        this.runList = other.runList;
+        this.normal = other.normal;
+        this.override = other.override;
+        this.chefEnvironment = other.chefEnvironment;
+        this.automatic = other.automatic;
+        this.def = other.def;
+    }
+
     public String getName() {
         return name;
     }

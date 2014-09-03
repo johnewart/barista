@@ -3,16 +3,15 @@ package net.johnewart.barista.core;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.joda.time.LocalTime;
 
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 public class Sandbox {
-    //@JsonProperty("id")
+    @JsonProperty("guid")
     String id;
 
-    //@JsonProperty("time")
-    LocalTime time;
+    @JsonProperty("creation_time")
+    LocalTime creationTime;
 
     @JsonProperty("is_completed")
     boolean completed;
@@ -23,6 +22,13 @@ public class Sandbox {
 
     public Sandbox() {
         this.id = UUID.randomUUID().toString();
+    }
+
+    public Sandbox(Sandbox other) {
+        this.checksums = other.checksums;
+        this.completed = other.completed;
+        this.creationTime = other.creationTime;
+        this.id = other.id;
     }
 
     public Map<String, String> getChecksums() {

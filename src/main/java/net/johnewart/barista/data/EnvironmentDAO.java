@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface EnvironmentDAO {
     List<Environment> findAll();
-    void add(Environment environment);
+    void store(Environment environment);
     Environment getByName(String envName);
     Environment removeByName(String envName);
     void removeAll();

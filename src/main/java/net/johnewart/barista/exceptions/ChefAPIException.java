@@ -31,7 +31,12 @@ public class ChefAPIException extends WebApplicationException {
 
     public static Response buildResponse(int code, List<String> exceptions) {
         Map<String, List<String>> errorMap = ImmutableMap.of("error", exceptions);
-        return Response.status(code).entity(errorMap).build();
+        Response response =  Response.status(code).entity(errorMap).build();
+        if(code >= 500 && code < 600) {
+            throw new WebApplicationException(response);
+        } else {
+            return response;
+        }
     }
 
 }

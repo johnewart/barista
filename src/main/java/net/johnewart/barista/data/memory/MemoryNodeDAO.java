@@ -3,52 +3,43 @@ package net.johnewart.barista.data.memory;
 import com.google.common.collect.ImmutableList;
 import net.johnewart.barista.core.Node;
 import net.johnewart.barista.data.NodeDAO;
-import org.eclipse.jetty.util.ConcurrentHashSet;
 
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class MemoryNodeDAO implements NodeDAO {
-    private final ConcurrentHashSet<Node> nodeSet;
+    private final ConcurrentHashMap<String, Node> nodeMap;
 
     public MemoryNodeDAO() {
-        nodeSet = new ConcurrentHashSet<>();
+        nodeMap = new ConcurrentHashMap<>();
     }
 
     @Override
     public List<Node> findAll() {
-        return ImmutableList.copyOf(nodeSet);
+        return ImmutableList.copyOf(nodeMap.values());
     }
 
     @Override
-    public void add(Node node) {
-        nodeSet.add(node);
+    public void store(Node node) {
+        nodeMap.put(node.getName(), node);
     }
 
     @Override
     public Node removeByName(String nodeName) {
-        for (Node node : nodeSet) {
-            if (node.getName().equals(nodeName)) {
-                nodeSet.remove(node);
-                return node;
-            }
-        }
-
-        return null;
+        return nodeMap.remove(nodeName);
     }
 
     @Override
     public void removeAll() {
-        nodeSet.clear();
+        nodeMap.clear();
     }
 
     @Override
     public Node getByName(String nodeName) {
-        for (Node node : nodeSet) {
-            if (node.getName().equals(nodeName)) {
-                return node;
-            }
+        if(nodeMap.containsKey(nodeName)) {
+            return new Node(nodeMap.get(nodeName));
+        } else {
+            return null;
         }
-
-        return null;
     }
 }

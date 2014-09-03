@@ -14,7 +14,7 @@ public class User {
     String email;
 
     @JsonProperty("admin")
-    boolean admin;
+    Boolean admin;
 
     @JsonProperty("public_key")
     String publicKey;
@@ -60,9 +60,51 @@ public class User {
 
     public User(String s) {
         username = s;
-        name = "client";
+        name = s;
         publicKey = "FOO";
         admin = true;
     }
 
+    public User(User other) {
+        this.username = other.username;
+        this.name = other.name;
+        this.publicKey = other.publicKey;
+        this.admin = other.admin;
+        this.email = other.email;
+        this.password = other.password;
+        this.salt = other.salt;
+        this.privateKey = other.privateKey;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public Boolean isAdmin() {
+        return admin;
+    }
+
+    public void update(User other) {
+        if(other.privateKey != null)
+            this.privateKey = other.privateKey;
+
+        if(other.publicKey != null)
+            this.publicKey = other.publicKey;
+
+        if(other.password != null && !other.password.isEmpty())
+            this.password = other.password;
+
+        if(other.salt != null && !other.salt.isEmpty())
+            this.salt = other.salt;
+
+        if(other.admin != null)
+            this.admin = other.admin;
+
+        if(other.email != null)
+            this.email = other.email;
+    }
 }

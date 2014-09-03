@@ -23,6 +23,7 @@ public class JSONMappingExceptionHandler implements ExceptionMapper<JsonMappingE
         Pattern bogusDataPattern = Pattern.compile(bogusDataPatternStr, Pattern.DOTALL);
         Matcher bogusDataMatcher = bogusDataPattern.matcher(message);
 
+        LOG.debug("JSON exception: ", e);
         String errorMessage = "Unhandled parsing error";
 
         if (message.startsWith("Unrecognized")) {
@@ -35,28 +36,26 @@ public class JSONMappingExceptionHandler implements ExceptionMapper<JsonMappingE
             String className = bogusDataMatcher.group(1);
             String property = bogusDataMatcher.group(2);
             switch(property) {
-                case "override":
-                    errorMessage = "Field 'override' is not a hash";
-                    break;
-
-                case "automatic":
-                    errorMessage = "Field 'automatic' is not a hash";
-                    break;
-
-                case "normal":
-                    errorMessage = "Field 'normal' is not a hash";
-                    break;
                 case "run_list":
                     errorMessage = "Field 'run_list' is not a valid run list";
                     break;
+
+                case "env_run_lists":
+                    errorMessage = "Field 'env_run_lists' contains invalid run lists";
+                    break;
+
+                case "override":
+                case "automatic":
+                case "normal":
                 case "default":
-                    errorMessage = "Field 'default' is not a hash";
+                case "default_attributes":
+                case "override_attributes":
+                    errorMessage = String.format("Field '%s' is not a hash", property);
                     break;
             }
         } else {
             LOG.error("Unhandled JSON exception: " + e.getMessage());
         }
-
 
         return ChefAPIException.buildResponse(400, errorMessage);
     }

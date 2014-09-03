@@ -6,7 +6,7 @@ import java.util.List;
 
 public interface NodeDAO {
     List<Node> findAll();
-    void add(Node node);
+    void store(Node node);
     Node getByName(String nodeName);
     Node removeByName(String nodeName);
     void removeAll();

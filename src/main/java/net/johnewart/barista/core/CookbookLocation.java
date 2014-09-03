@@ -14,8 +14,12 @@ public class CookbookLocation {
     final Set<CookbookVersionLocation> cookbookVersionLocationSet;
 
     public CookbookLocation(Cookbook cookbook) {
+        this(cookbook.getCookbookName());
+    }
+
+    public CookbookLocation(String cookbookName) {
         this.cookbookVersionLocationSet = new TreeSet<>();
-        this.url =  String.format("%s/%s", BASE_URL, cookbook.getCookbookName());
+        this.url =  String.format("%s/%s", BASE_URL, cookbookName);
     }
 
     public void addVersion(Cookbook cookbook) {

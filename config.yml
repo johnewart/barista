@@ -31,6 +31,7 @@ database:
 server:
 #  softNofileLimit: 1000
 #  hardNofileLimit: 1000
+  allowedMethods: [GET, PUT, POST, DELETE]
   applicationConnectors:
     - type: http
       port: 9090

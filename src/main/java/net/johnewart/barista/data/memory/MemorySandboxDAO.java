@@ -3,52 +3,43 @@ package net.johnewart.barista.data.memory;
 import com.google.common.collect.ImmutableList;
 import net.johnewart.barista.core.Sandbox;
 import net.johnewart.barista.data.SandboxDAO;
-import org.eclipse.jetty.util.ConcurrentHashSet;
 
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class MemorySandboxDAO implements SandboxDAO {
-    private final ConcurrentHashSet<Sandbox> sandboxSet;
+    private final ConcurrentHashMap<String, Sandbox> sandboxMap;
 
     public MemorySandboxDAO() {
-        sandboxSet = new ConcurrentHashSet<>();
+        sandboxMap = new ConcurrentHashMap<>();
     }
 
     @Override
     public List<Sandbox> findAll() {
-        return ImmutableList.copyOf(sandboxSet);
+        return ImmutableList.copyOf(sandboxMap.values());
     }
 
     @Override
-    public void add(Sandbox sandbox) {
-        sandboxSet.add(sandbox);
+    public void store(Sandbox sandbox) {
+        sandboxMap.put(sandbox.getId(), sandbox);
     }
 
     @Override
     public Sandbox removeById(String sandboxId) {
-        for (Sandbox sandbox : sandboxSet) {
-            if (sandbox.getId().equals(sandboxId)) {
-                sandboxSet.remove(sandbox);
-                return sandbox;
-            }
-        }
-
-        return null;
+        return sandboxMap.remove(sandboxId);
     }
 
     @Override
     public void removeAll() {
-        sandboxSet.clear();
+        sandboxMap.clear();
     }
 
     @Override
     public Sandbox getById(String sandboxId) {
-        for (Sandbox sandbox : sandboxSet) {
-            if (sandbox.getId().equals(sandboxId)) {
-                return sandbox;
-            }
+        if(sandboxMap.containsKey(sandboxId)) {
+            return new Sandbox(sandboxMap.get(sandboxId));
+        } else {
+            return null;
         }
-
-        return null;
     }
 }

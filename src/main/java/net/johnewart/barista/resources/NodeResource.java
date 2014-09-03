@@ -1,9 +1,10 @@
 package net.johnewart.barista.resources;
 
 import com.codahale.metrics.annotation.Timed;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import io.dropwizard.auth.Auth;
 import net.johnewart.barista.core.Node;
+import net.johnewart.barista.core.User;
 import net.johnewart.barista.data.NodeDAO;
 import net.johnewart.barista.exceptions.ChefAPIException;
 import org.slf4j.Logger;
@@ -37,7 +38,9 @@ public class NodeResource {
         Node existingNode = nodeDAO.getByName(nodeName);
 
         if (existingNode == null) {
-            return Response.status(404).build();
+            //return Response.status(404).build();
+            nodeDAO.store(node);
+            return Response.status(201).entity(node).build();
         } else {
             if(node.getName() != null && !node.getName().equals(existingNode.getName())) {
                 throw new ChefAPIException("Node name mismatch.");
@@ -46,7 +49,7 @@ public class NodeResource {
                 existingNode.updateFrom(node);
                 validateNode(existingNode);
                 node.normalizeRunList();
-                // TODO: update existing node
+                nodeDAO.store(existingNode);
                 return Response.status(200).entity(existingNode).build();
             }
         }
@@ -58,7 +61,7 @@ public class NodeResource {
         if(nodeDAO.getByName(node.getName()) == null) {
             validateNode(node);
             node.normalizeRunList();
-            nodeDAO.add(node);
+            nodeDAO.store(node);
             return Response
                     .status(201)
                     .entity(ImmutableMap.of("uri", "http://localhost:9090/nodes/" + node.getName()))
@@ -70,7 +73,7 @@ public class NodeResource {
 
     @GET
     @Timed(name = "node-list")
-    public java.util.Map<String, String> listNodes() {
+    public java.util.Map<String, String> listNodes(@Auth User user) {
         Map<String, String> nodes = new HashMap<>();
 
         for (Node node : nodeDAO.findAll()) {

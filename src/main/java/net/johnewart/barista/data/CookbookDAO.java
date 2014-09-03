@@ -9,13 +9,22 @@ import java.util.Map;
 import java.util.Set;
 
 public interface CookbookDAO {
+    int NO_LIMITS = -1;
+
     List<Cookbook> findAll();
-    void add(Cookbook cookbook);
-    Cookbook getByName(String cookbookName);
-    Set<Cookbook> removeByName(String cookbookName);
+    Set<String> findAllCookbookNames();
+
+    void store(Cookbook cookbook);
     void removeAll();
+
     Set<Cookbook> findAllByName(String cookbookName);
-    boolean removeByNameAndVersion(String cookbookName, String cookbookVersion);
-    Map<String, Set<Cookbook>> findAllWithConstraints(Map<String, VersionConstraint> constraintMap);
-    Map<String, Set<Cookbook>> findOneWithConstraints(String cookbookName,  VersionConstraint constraint);
+    Cookbook findByNameAndVersion(String cookbookName, String version);
+
+    Set<Cookbook> removeByName(String cookbookName);
+    Cookbook removeByNameAndVersion(String cookbookName, String cookbookVersion);
+
+    Map<String, List<Cookbook>> findAllWithConstraints(Map<String, VersionConstraint> constraintMap, int numVersions);
+    List<Cookbook> findOneWithConstraints(String cookbookName, VersionConstraint constraint, int numVersions);
+
+    List<Cookbook> findLatestVersions();
 }

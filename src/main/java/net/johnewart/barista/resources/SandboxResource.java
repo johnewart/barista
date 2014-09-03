@@ -4,7 +4,9 @@ import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import net.johnewart.barista.core.Sandbox;
 import net.johnewart.barista.core.SandboxResponse;
+import net.johnewart.barista.data.storage.FileStorageEngine;
 import net.johnewart.barista.data.SandboxDAO;
+import net.johnewart.barista.exceptions.ChefAPIException;
 import net.johnewart.barista.utils.URLGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,9 +27,11 @@ public class SandboxResource {
     // TODO: make this variable and ensure existence
     private final String BASE_PATH = "/tmp/chef";
     private final SandboxDAO sandboxDAO;
+    private final FileStorageEngine fileStorage;
 
-    public SandboxResource(SandboxDAO sandboxDAO) {
+    public SandboxResource(SandboxDAO sandboxDAO, FileStorageEngine fileStorage) {
         this.sandboxDAO = sandboxDAO;
+        this.fileStorage = fileStorage;
     }
 
     @POST
@@ -50,7 +54,7 @@ public class SandboxResource {
 
         String uri = URLGenerator.generateUrl(String.format("sandboxes/%s", sandbox.getId()));
         SandboxResponse response = new SandboxResponse(uri, sandbox.getId(), results);
-        sandboxDAO.add(sandbox);
+        sandboxDAO.store(sandbox);
 
         return Response
                 .status(201)
@@ -63,8 +67,14 @@ public class SandboxResource {
     @Path("{sandboxId:.*?}")
     public Response update(@PathParam("sandboxId") String sandboxId, Sandbox sandbox) {
         Sandbox existing = sandboxDAO.getById(sandboxId);
+        for(String checksum : existing.getChecksums().keySet()) {
+            if(!fileStorage.contains(checksum)) {
+                throw new ChefAPIException(503, String.format("Checksum not uploaded: %s", checksum));
+            }
+        }
         existing.setCompleted(sandbox.isCompleted());
-        return Response.ok().build();
+        sandboxDAO.store(existing);
+        return Response.ok(sandbox).build();
     }
 
     @GET
@@ -93,10 +103,10 @@ public class SandboxResource {
 
     public class FileStatus {
 
-        @JsonProperty
+        @JsonProperty("needs_upload")
         public final boolean needsUpload;
 
-        @JsonProperty
+        @JsonProperty("url")
         public final String url;
 
         public FileStatus(String url, boolean needsUpload) {

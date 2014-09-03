@@ -50,9 +50,27 @@ public class VersionConstraint  {
             case ">=":
             case "=>":
                 return (result == 0 || result == -1);
+            case "~>":
+                return other.pessimisticMatch(version);
             default:
                 return false;
         }
     }
 
+    public static boolean validate(String expression) {
+        if(expression == null || expression.isEmpty()) {
+            return false;
+        }
+
+        String[] parts = expression.split("\\s");
+        if(parts.length > 2 || parts.length == 0) {
+            return false;
+        } else {
+            if(parts.length == 2) {
+                return SemanticVersion.validate(parts[1]);
+            } else {
+                return SemanticVersion.validate(parts[0]);
+            }
+        }
+    }
 }
