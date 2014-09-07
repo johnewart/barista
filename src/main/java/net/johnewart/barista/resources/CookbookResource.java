@@ -5,6 +5,7 @@ import com.google.common.base.Optional;
 import io.dropwizard.auth.Auth;
 import net.johnewart.barista.core.*;
 import net.johnewart.barista.data.CookbookDAO;
+import net.johnewart.barista.data.storage.FileStorageEngine;
 import net.johnewart.barista.exceptions.ChefAPIException;
 import net.johnewart.barista.utils.URLGenerator;
 import org.slf4j.Logger;
@@ -20,9 +21,11 @@ import java.util.*;
 public class CookbookResource {
     private static final Logger LOG = LoggerFactory.getLogger(CookbookResource.class);
     private final CookbookDAO cookbookDAO;
+    private final FileStorageEngine fileStorageEngine;
 
-    public CookbookResource(CookbookDAO cookbookDAO) {
+    public CookbookResource(CookbookDAO cookbookDAO, FileStorageEngine fileStorageEngine) {
         this.cookbookDAO = cookbookDAO;
+        this.fileStorageEngine = fileStorageEngine;
     }
 
     @POST
@@ -39,10 +42,17 @@ public class CookbookResource {
     @Timed(name = "cookbook-update")
     @Path("{name:[a-zA-Z0-9:_-]+}/{version:\\d+\\.\\d+(\\.\\d+)?}")
     public Response update(Cookbook cookbook,
+                           @PathParam("name") String cookbookName,
+                           @PathParam("version") String cookbookVersion,
                            @QueryParam("force") Optional<String> forceOption) {
-        Cookbook existing = cookbookDAO.findByNameAndVersion(cookbook.getCookbookName(), cookbook.getVersion());
+        if(cookbook.getVersion() == null) {
+            // WTF?
+            LOG.debug("No vesion");
+        }
+        Cookbook existing = cookbookDAO.findByNameAndVersion(cookbookName, cookbookVersion);
 
         if(existing == null) {
+
             cookbookDAO.store(cookbook);
             return Response.status(201).entity(cookbook).build();
         } else {
@@ -61,8 +71,19 @@ public class CookbookResource {
 
     @GET
     @Timed(name = "cookbook-list")
-    public Map<String, CookbookLocation> list() {
-        return buildLocationHash(cookbookDAO.findAll());
+    public Map<String, CookbookLocation> list(@QueryParam("num_versions") Optional<String> numVersionString) {
+        int numVersions;
+        if(numVersionString.isPresent()) {
+            if(numVersionString.get().equals("all")) {
+                numVersions = -1;
+            } else {
+                numVersions = Integer.parseInt(numVersionString.get());
+            }
+
+            return buildLocationHash(cookbookDAO.findAll(), numVersions);
+        } else {
+            return buildLocationHash(cookbookDAO.findAll(), 1);
+        }
     }
 
     @GET
@@ -95,6 +116,10 @@ public class CookbookResource {
         Cookbook removed =  cookbookDAO.removeByNameAndVersion(cookbookName, cookbookVersion);
 
         if(removed != null) {
+            for(Recipe recipe : removed.getRecipes()) {
+                String hash = recipe.getChecksum();
+                fileStorageEngine.remove(hash);
+            }
             return Response.status(200).entity(removed).build();
         } else {
             LOG.debug("Cookbook wasn't found. 404'ing");
@@ -109,6 +134,18 @@ public class CookbookResource {
         LOG.debug("Deleting " + cookbookName);
         cookbookDAO.removeByName(cookbookName);
         return Response.status(200).build();
+    }
+
+    @GET
+    @Timed(name = "cookbook-fetch-latest")
+    @Path("{name:[a-zA-Z0-9:_-]+}/_latest")
+    public Response getLatestCookbook(@PathParam("name") String cookbookName) {
+        Cookbook cookbook = cookbookDAO.findLatestVersion(cookbookName);
+        if (cookbook != null) {
+            return Response.status(200).entity(cookbook).build();
+        } else {
+            throw new ChefAPIException(404, String.format("No version of %s", cookbookName));
+        }
     }
 
     @GET
@@ -158,16 +195,30 @@ public class CookbookResource {
     }
 
     private Map<String, CookbookLocation> buildLocationHash(Collection<Cookbook> cookbooks) {
+        return buildLocationHash(cookbooks, -1);
+    }
+
+    private Map<String, CookbookLocation> buildLocationHash(Collection<Cookbook> cookbooks, int numVersions) {
+
+        List<Cookbook> cookbookList = new ArrayList<>(cookbooks);
+        Collections.sort(cookbookList, new Comparator<Cookbook>() {
+            @Override
+            public int compare(Cookbook o1, Cookbook o2) {
+                return o1.getSemanticVersion().compareTo(o2.getSemanticVersion());
+            }
+        });
+
         Map<String, CookbookLocation> results = new HashMap<>();
 
-        for(Cookbook cookbook : cookbooks) {
+        for(Cookbook cookbook : cookbookList) {
             final String cookbookName = cookbook.getCookbookName();
 
             if(!results.containsKey(cookbookName)) {
                 results.put(cookbookName, new CookbookLocation(cookbookName));
             }
 
-            results.get(cookbookName).addVersion(cookbook);
+            if(numVersions == -1 || results.get(cookbookName).size() < numVersions)
+                results.get(cookbookName).addVersion(cookbook);
         }
 
         return results;

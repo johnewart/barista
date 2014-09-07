@@ -1,20 +1,25 @@
 package net.johnewart.barista.core;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.dropwizard.jackson.JsonSnakeCase;
-import net.johnewart.barista.utils.URLGenerator;
 
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
 @JsonSnakeCase
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class Cookbook {
     String name;
     String cookbookName;
     String version;
     String chefType;
     String jsonClass;
+    Boolean frozen;
+    
     List<Map> definitions;
     List<Map> libraries;
     List<Map> attributes;
@@ -24,12 +29,53 @@ public class Cookbook {
     List<Map> templates;
     List<Map> rootFiles;
     List<Map> files;
-    boolean frozen;
-    Map metadata;
+    Map<String, Object> metadata;
+    
     SemanticVersion semanticVersion;
 
     public Cookbook() {
     }
+
+    // TODO: Apache commons serialization utils instead?
+    public Cookbook(Cookbook other) {
+        this.name = other.name;
+        this.cookbookName = other.cookbookName;
+        this.version = other.version;
+        this.chefType = other.chefType;
+        this.jsonClass = other.jsonClass;
+        this.frozen = other.frozen;
+
+        // TODO: Seriously? Our client really cares if null data comes back as empty hashes / arrays? WTF?
+        if(other.definitions != null) 
+            this.definitions = new LinkedList<>(other.definitions);
+        
+        if(other.libraries != null) 
+            this.libraries = new LinkedList<>(other.libraries);
+
+        if(other.attributes != null) 
+            this.attributes = new LinkedList<>(other.attributes);
+
+        if(other.recipes != null) 
+            this.recipes = new LinkedList<>(other.recipes);
+
+        if(other.providers != null) 
+            this.providers = new LinkedList<>(other.providers);
+
+        if(other.resources != null)
+            this.resources = new LinkedList<>(other.resources);
+
+        if(other.templates != null)
+            this.templates = new LinkedList<>(other.templates);
+
+        if(other.rootFiles != null)
+            this.rootFiles = new LinkedList<>(other.rootFiles);
+
+        if(other.files != null)
+            this.files = new LinkedList<>(other.files);
+
+        if(other.metadata != null)
+            this.metadata = new HashMap<>(other.metadata);
+    } 
 
     @JsonProperty("name")
     public String getName() {
@@ -76,7 +122,7 @@ public class Cookbook {
         this.jsonClass = jsonClass;
     }
 
-    @JsonIgnore
+    @JsonProperty("definitions")
     public List<Map> getDefinitions() {
         return definitions;
     }
@@ -86,7 +132,7 @@ public class Cookbook {
         this.definitions = definitions;
     }
 
-    @JsonIgnore
+    @JsonProperty("libraries")
     public List<Map> getLibraries() {
         return libraries;
     }
@@ -96,7 +142,7 @@ public class Cookbook {
         this.libraries = libraries;
     }
 
-    @JsonIgnore
+    @JsonProperty("attributes")
     public List<Map> getAttributes() {
         return attributes;
     }
@@ -115,7 +161,7 @@ public class Cookbook {
         this.recipes = recipes;
     }
 
-    @JsonIgnore
+    @JsonProperty("providers")
     public List<Map> getProviders() {
         return providers;
     }
@@ -125,7 +171,7 @@ public class Cookbook {
         this.providers = providers;
     }
 
-    @JsonIgnore
+    @JsonProperty("templates")
     public List<Map> getTemplates() {
         return templates;
     }
@@ -135,7 +181,7 @@ public class Cookbook {
         this.templates = templates;
     }
 
-    @JsonIgnore
+    @JsonProperty("root_files")
     public List<Map> getRootFiles() {
         return rootFiles;
     }
@@ -145,7 +191,7 @@ public class Cookbook {
         this.rootFiles = rootFiles;
     }
 
-    @JsonIgnore
+    @JsonProperty("files")
     public List<Map> getFiles() {
         return files;
     }
@@ -157,10 +203,14 @@ public class Cookbook {
 
     @JsonProperty("frozen?")
     public boolean isFrozen() {
-        return frozen;
+        if(frozen == null) {
+            return false;
+        } else {
+            return frozen.booleanValue();
+        }
     }
 
-    public void setFrozen(boolean frozen) {
+    public void setFrozen(Boolean frozen) {
         this.frozen = frozen;
     }
 
@@ -192,15 +242,42 @@ public class Cookbook {
     }
 
     public void updateFrom(Cookbook other) {
-        this.definitions = other.definitions;
-        this.libraries = other.libraries;
-        this.attributes = other.attributes;
-        this.recipes = other.recipes;
-        this.templates = other.templates;
-        this.rootFiles = other.rootFiles;
-        this.files = other.files;
-        this.metadata = other.metadata;
-        this.resources = other.resources;
+        if(other.definitions != null)
+            this.definitions = other.definitions;
+        if(other.libraries != null)
+            this.libraries = other.libraries;
+        if(other.attributes != null)
+            this.attributes = other.attributes;
+        if (other.recipes != null)
+            this.recipes = other.recipes;
+        if(other.templates != null)
+            this.templates = other.templates;
+        if(other.version != null)
+            this.version = other.version;
+        if(other.rootFiles != null)
+            this.rootFiles = other.rootFiles;
+        if(other.files != null)
+            this.files = other.files;
+        if(other.metadata != null)
+            this.metadata = other.metadata;
+        if(other.resources != null)
+            this.resources = other.resources;
+        if(other.frozen != null)
+            this.frozen = other.frozen;
+    }
+
+    @JsonIgnore
+    public Map<String, VersionConstraint> getDependencies() {
+        Map<String, String> dependencies = (Map<String, String>) getMetadata().get("dependencies");
+        Map<String, VersionConstraint> results = new HashMap<>();
+        if(dependencies != null) {
+            for(String depCookbookName : dependencies.keySet()) {
+                VersionConstraint vc = new VersionConstraint(dependencies.get(depCookbookName));
+                results.put(depCookbookName, vc);
+            }
+        }
+
+        return results;
     }
 
 

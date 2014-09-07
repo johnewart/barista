@@ -74,7 +74,7 @@ public class SandboxResource {
         }
         existing.setCompleted(sandbox.isCompleted());
         sandboxDAO.store(existing);
-        return Response.ok(sandbox).build();
+        return Response.ok(existing).build();
     }
 
     @GET

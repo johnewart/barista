@@ -42,6 +42,9 @@ public class Client {
     @JsonProperty("private_key")
     String privateKey;
 
+    @JsonProperty("clientname")
+    String clientName;
+
     public Client() {
       /*  privateKey = "-----BEGIN RSA PRIVATE KEY-----\n" +
                 "MIIEowIBAAKCAQEAtBr5Vq2X8sP12K7EP1SyWHaCglGdoUdiR37TQwRQ8l0NvpGq\n" +

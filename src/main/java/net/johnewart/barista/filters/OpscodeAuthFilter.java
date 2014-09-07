@@ -38,7 +38,7 @@ public class OpscodeAuthFilter implements Filter {
                 throw new ErrorCodeException(400);
             }
 
-            if (userid == null || !userid.equals("admin") ||
+            if (userid == null ||
                 timestamp == null || timestamp.isEmpty() ||
                 contentHash == null || contentHash.isEmpty())
             {

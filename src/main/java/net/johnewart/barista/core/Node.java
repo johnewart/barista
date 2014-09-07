@@ -29,11 +29,11 @@ public class Node {
 
     @JsonProperty("json_class")
     @Pattern(regexp = "^Chef::Node$", message = "Field 'json_class' invalid")
-    String jsonClass;
+    String jsonClass = "Chef::Node";
 
     @JsonProperty("chef_type")
     @Pattern(regexp = "^node$", message = "Field 'chef_type' invalid")
-    String chefType;
+    String chefType = "node";
 
     @JsonProperty
     Map automatic;

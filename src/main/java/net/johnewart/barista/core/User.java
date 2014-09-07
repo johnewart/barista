@@ -62,7 +62,9 @@ public class User {
         username = s;
         name = s;
         publicKey = "FOO";
-        admin = true;
+        //if(s.equals("admin"))
+        //   admin = true;
+        admin = false;
     }
 
     public User(User other) {

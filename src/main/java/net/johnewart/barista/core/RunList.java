@@ -22,7 +22,6 @@ public class RunList extends LinkedList<String> {
 
     @Override
     public boolean add(String element) {
-        LOG.debug("Calling custom add: " + element);
         if (element.matches(RECIPE_PATTERN)) {
             element = ("recipe[" + element + "]");
         }

@@ -113,7 +113,7 @@ public class NodeResource {
 
         Node node = nodeDAO.getByName(nodeName);
         if (node == null) {
-            return Response.status(404).entity(null).build();
+            return Response.status(404).entity(new HashMap<String, String>()).build();
         } else {
             return Response
                     .status(200)

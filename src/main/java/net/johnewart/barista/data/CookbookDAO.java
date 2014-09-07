@@ -19,7 +19,9 @@ public interface CookbookDAO {
 
     Set<Cookbook> findAllByName(String cookbookName);
     Cookbook findByNameAndVersion(String cookbookName, String version);
+    Cookbook findLatestVersion(String cookbookName);
 
+    Set<Cookbook> findWithDependencies(String cookbookName, String version);
     Set<Cookbook> removeByName(String cookbookName);
     Cookbook removeByNameAndVersion(String cookbookName, String cookbookVersion);
 

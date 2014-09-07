@@ -9,6 +9,7 @@ import net.johnewart.barista.data.CookbookDAO;
 import net.johnewart.barista.data.EnvironmentDAO;
 import net.johnewart.barista.data.RoleDAO;
 import net.johnewart.barista.exceptions.ChefAPIException;
+import net.johnewart.barista.response.EnvironmentCookbookResponse;
 import net.johnewart.barista.utils.URLGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,6 +59,97 @@ public class EnvironmentResource {
         return nodes;
     }
 
+
+    @POST
+    @Timed(name = "environment-create-cookbook-versions")
+    @Path("{name:[a-zA-Z0-9_-]+}/cookbook_versions")
+    public Response createCookbookVersions(@PathParam("name") String environmentName,
+                                           Map<String, RunList> data) {
+        String x= "foo";
+        RunList runList = data.get("run_list");
+        Environment environment = environmentDAO.getByName(environmentName);
+        Map<String, EnvironmentCookbookResponse> results = new HashMap<>();
+        Map<String, SemanticVersion> desiredVersions = new HashMap<>();
+
+        // TODO: clean this up
+        if(environment != null && runList != null) {
+            Map<String, String> cookbookVersions = environment.getCookbookVersions();
+            for(String recipe : runList) {
+                recipe = recipe.replace("recipe[", "");
+                recipe = recipe.replace("]","");
+                String[] parts = recipe.split("::");
+                if(parts.length == 2) {
+                    String cookbookName = parts[0];
+                    String recipePart = parts[1];
+                    if(recipePart.matches(".*@.*")) {
+                        String[] versionParts = recipePart.split("@");
+                        String recipeName = versionParts[0];
+                        String cookbookVersion = versionParts[1];
+                        desiredVersions.put(cookbookName, new SemanticVersion(cookbookVersion));
+                    } else {
+                        Cookbook latest = cookbookDAO.findLatestVersion(cookbookName);
+                        desiredVersions.put(cookbookName, latest.getSemanticVersion());
+                    }
+                } else {
+                    String cookbookName = recipe;
+                    Cookbook latest = cookbookDAO.findLatestVersion(cookbookName);
+                    desiredVersions.put(cookbookName, latest.getSemanticVersion());
+                }
+            }
+        }
+
+        // TODO: this is horribly suboptimal
+        Set<Cookbook> allCookbooks = new HashSet<>();
+        for(Map.Entry<String, SemanticVersion> entry : desiredVersions.entrySet()) {
+            allCookbooks.addAll(cookbookDAO.findWithDependencies(entry.getKey(), entry.getValue().toString()));
+            //Cookbook cookbook = cookbookDAO.findByNameAndVersion(entry.getKey(), entry.getValue().toString());
+        }
+
+        Map<String, Set<VersionConstraint>> constraintMap = new HashMap<>();
+        Set<String> requiredCookbookNames = new HashSet<>();
+        for(Cookbook c : allCookbooks) {
+            requiredCookbookNames.add(c.getCookbookName());
+
+            final Map<String, VersionConstraint> dependencies = c.getDependencies();
+
+            for(Map.Entry<String, VersionConstraint> dependency : dependencies.entrySet()) {
+                String cookbookName = dependency.getKey();
+                VersionConstraint constraint = dependency.getValue();
+
+                if (!constraintMap.containsKey(cookbookName)) {
+                    constraintMap.put(cookbookName, new HashSet<VersionConstraint>());
+                }
+
+                constraintMap.get(cookbookName).add(constraint);
+            }
+        }
+
+        Set<Cookbook> matchingCookbooks = new HashSet<>();
+        for(Cookbook c : allCookbooks) {
+            Set<VersionConstraint> constraints = constraintMap.get(c.getCookbookName());
+            boolean passes = true;
+            if(constraints != null) {
+
+                for(VersionConstraint constraint : constraints) {
+                    passes &= constraint.matches(c.getSemanticVersion());
+                }
+            }
+
+            if(passes) {
+                matchingCookbooks.add(c);
+            }
+        }
+
+
+        for(Cookbook c : matchingCookbooks) {
+            results.put(c.getCookbookName(), new EnvironmentCookbookResponse(c));
+        }
+        //results.put(entry.getKey(), cookbook);
+
+
+        //results.put(recipe, cookbookDAO.findLatestVersion(cookbookName));
+        return Response.ok(results).build();
+    }
 
     @POST
     @Timed(name = "environment-create")
@@ -332,4 +424,6 @@ public class EnvironmentResource {
             throw new ChefAPIException(errorMessages);
         }
     }
+
+
 }

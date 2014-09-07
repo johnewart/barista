@@ -15,6 +15,9 @@ import net.johnewart.barista.exceptions.JSONMappingExceptionHandler;
 import net.johnewart.barista.filters.OpscodeAuthFilter;
 import net.johnewart.barista.filters.RequestSizeFilter;
 import net.johnewart.barista.resources.*;
+import org.apache.solr.client.solrj.SolrServer;
+import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
+import org.apache.solr.core.CoreContainer;
 import org.eclipse.jetty.rewrite.handler.RewriteHandler;
 import org.eclipse.jetty.rewrite.handler.RewriteRegexRule;
 import org.eclipse.jetty.servlet.FilterHolder;
@@ -72,6 +75,8 @@ public class BaristaApplication extends Application<BaristaConfiguration> {
         rewrite.addRule(regex);
         environment.getApplicationContext().setHandler(rewrite);
         //environment.jersey().register(rewrite);
+        CoreContainer coreContainer = new CoreContainer("/tmp/chef-solr");
+        SolrServer solrServer = new EmbeddedSolrServer(coreContainer, "barista");
 
         environment.jersey().register(new ChefAuthProvider<>(new ChefAuthenticator()));
         environment.jersey().register(new ChefAPIExceptionMapper());
@@ -81,10 +86,10 @@ public class BaristaApplication extends Application<BaristaConfiguration> {
         environment.jersey().register(new UserResource(userDAO));
         environment.jersey().register(new AuthResource(userDAO));
         environment.jersey().register(new EnvironmentResource(cookbookDAO, environmentDAO, roleDAO));
-        environment.jersey().register(new CookbookResource(cookbookDAO));
+        environment.jersey().register(new CookbookResource(cookbookDAO, fileStorageEngine));
         environment.jersey().register(new SandboxResource(sandboxDAO, fileStorageEngine));
         environment.jersey().register(new RoleResource(roleDAO));
-        environment.jersey().register(new SearchResource());
+        environment.jersey().register(new SearchResource(solrServer));
         environment.jersey().register(new DatabagResource(databagDAO));
         environment.jersey().register(new FileStoreResource(fileStorageEngine));
     }

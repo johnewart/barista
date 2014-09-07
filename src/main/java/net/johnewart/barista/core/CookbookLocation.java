@@ -26,6 +26,10 @@ public class CookbookLocation {
         this.cookbookVersionLocationSet.add(new CookbookVersionLocation(cookbook));
     }
 
+    public int size() {
+        return this.cookbookVersionLocationSet.size();
+    }
+
 
     class CookbookVersionLocation implements Comparable<CookbookVersionLocation> {
         String url;

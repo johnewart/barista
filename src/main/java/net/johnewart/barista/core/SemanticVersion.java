@@ -1,29 +1,32 @@
 package net.johnewart.barista.core;
 
 public class SemanticVersion implements Comparable<SemanticVersion> {
-    final public int major, minor, patchlevel;
+    final public long major, minor, patchlevel;
 
     public SemanticVersion(String versionString) {
-        String[] parts = versionString.split("\\.");
+        if(versionString != null) {
+            String[] parts = versionString.split("\\.");
 
-        major = Integer.parseInt(parts[0]);
-        minor = Integer.parseInt(parts[1]);
+            major = Long.parseLong(parts[0]);
+            minor = Long.parseLong(parts[1]);
 
-        if (parts.length > 2) {
-            patchlevel = Integer.parseInt(parts[2]);
+            if (parts.length > 2) {
+                patchlevel = Long.parseLong(parts[2]);
+            } else {
+                patchlevel = -1;
+            }
         } else {
-            patchlevel = -1;
+            major = minor = patchlevel = 0;
         }
     }
 
     // Does my version pessimistically match the other version?
     // i.e, i am 2.3. and they are 2.3.0 -> yes
     public boolean pessimisticMatch(SemanticVersion other) {
-        switch(other.patchlevel) {
+        if(other.patchlevel == -1) {
             // i.e 2.4, only care about MV (2.4, 2.5, 2.6, 2.9, etc. match)
-            case -1:
-                return this.major == other.major && this.minor >= other.patchlevel;
-            default:
+            return this.major == other.major && this.minor >= other.patchlevel;
+        } else {
                 // i.e 2.3.4 so 2.3.4, 2.3.5 ... 2.3.XX match but 2.4 does not
                 return this.major == other.major && this.minor == other.minor && this.patchlevel >= other.patchlevel;
         }

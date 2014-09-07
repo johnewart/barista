@@ -40,7 +40,7 @@ public class MemoryCookbookDAO implements CookbookDAO {
             cookbookMap.put(cookbookName, new HashMap<String, Cookbook>());
         }
 
-        cookbookMap.get(cookbookName).put(cookbook.getVersion(), cookbook);
+        cookbookMap.get(cookbookName).put(cookbook.getVersion(), new Cookbook(cookbook));
     }
 
     @Override
@@ -79,6 +79,34 @@ public class MemoryCookbookDAO implements CookbookDAO {
         } else {
             return null;
         }
+    }
+
+    @Override
+    public Cookbook findLatestVersion(String cookbookName) {
+        Set<Cookbook> results = findAllByName(cookbookName);
+        List<Cookbook> latest = orderCookbooks(results, 1);
+
+        if(latest.size() == 0) {
+            return null;
+        } else {
+            return latest.get(0);
+        }
+    }
+
+    @Override
+    // TODO: Abstract class some of these (like this one)
+    public Set<Cookbook> findWithDependencies(String cookbookName, String version) {
+        Cookbook root = findByNameAndVersion(cookbookName, version);
+        Set<Cookbook> cookbooks = new HashSet<>();
+        cookbooks.add(root);
+
+        for(String depCookbookName : root.getDependencies().keySet()) {
+            VersionConstraint constraint = root.getDependencies().get(depCookbookName);
+            Cookbook bestMatch = findOneWithConstraints(depCookbookName, constraint, 1).get(0);
+            cookbooks.addAll(findWithDependencies(depCookbookName, bestMatch.getVersion()));
+        }
+
+        return cookbooks;
     }
 
     @Override

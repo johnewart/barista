@@ -36,4 +36,10 @@ public class OnDiskFileStorageEngine implements FileStorageEngine {
         os.write(data.getBytes());
         os.close();
     }
+
+    @Override
+    public void remove(String hash) {
+        File f = new File(storagePath + "/" + hash);
+        f.delete();
+    }
 }

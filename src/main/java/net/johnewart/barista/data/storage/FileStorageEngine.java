@@ -7,4 +7,5 @@ public interface FileStorageEngine {
     public InputStream getResource(String resourceId);
     public boolean contains(String resourceId);
     void store(String fileChecksum, String stuff) throws IOException;
+    void remove(String hash);
 }

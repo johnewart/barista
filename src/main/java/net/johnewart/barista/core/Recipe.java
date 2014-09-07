@@ -24,4 +24,8 @@ public class Recipe {
     public String getName() {
         return name;
     }
+
+    public String getChecksum() {
+        return checksum;
+    }
 }
