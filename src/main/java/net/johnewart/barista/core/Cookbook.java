@@ -20,15 +20,15 @@ public class Cookbook {
     String jsonClass;
     Boolean frozen;
     
-    List<Map> definitions;
-    List<Map> libraries;
-    List<Map> attributes;
-    List<Recipe> recipes;
-    List<Map> providers;
-    List<Map> resources;
-    List<Map> templates;
-    List<Map> rootFiles;
-    List<Map> files;
+    List<CookbookResource> definitions;
+    List<CookbookResource> libraries;
+    List<CookbookResource> attributes;
+    List<CookbookResource> recipes;
+    List<CookbookResource> providers;
+    List<CookbookResource> resources;
+    List<CookbookResource> templates;
+    List<CookbookResource> rootFiles;
+    List<CookbookResource> files;
     Map<String, Object> metadata;
     
     SemanticVersion semanticVersion;
@@ -123,81 +123,81 @@ public class Cookbook {
     }
 
     @JsonProperty("definitions")
-    public List<Map> getDefinitions() {
+    public List<CookbookResource> getDefinitions() {
         return definitions;
     }
 
     @JsonProperty("definitions")
-    public void setDefinitions(List<Map> definitions) {
+    public void setDefinitions(List<CookbookResource> definitions) {
         this.definitions = definitions;
     }
 
     @JsonProperty("libraries")
-    public List<Map> getLibraries() {
+    public List<CookbookResource> getLibraries() {
         return libraries;
     }
 
     @JsonProperty("libraries")
-    public void setLibraries(List<Map> libraries) {
+    public void setLibraries(List<CookbookResource> libraries) {
         this.libraries = libraries;
     }
 
     @JsonProperty("attributes")
-    public List<Map> getAttributes() {
+    public List<CookbookResource> getAttributes() {
         return attributes;
     }
 
     @JsonProperty("attributes")
-    public void setAttributes(List<Map> attributes) {
+    public void setAttributes(List<CookbookResource> attributes) {
         this.attributes = attributes;
     }
 
     @JsonProperty("recipes")
-    public List<Recipe> getRecipes() {
+    public List<CookbookResource> getRecipes() {
         return recipes;
     }
 
-    public void setRecipes(List<Recipe> recipes) {
+    public void setRecipes(List<CookbookResource> recipes) {
         this.recipes = recipes;
     }
 
     @JsonProperty("providers")
-    public List<Map> getProviders() {
+    public List<CookbookResource> getProviders() {
         return providers;
     }
 
     @JsonProperty("providers")
-    public void setProviders(List<Map> providers) {
+    public void setProviders(List<CookbookResource> providers) {
         this.providers = providers;
     }
 
     @JsonProperty("templates")
-    public List<Map> getTemplates() {
+    public List<CookbookResource> getTemplates() {
         return templates;
     }
 
     @JsonProperty("templates")
-    public void setTemplates(List<Map> templates) {
+    public void setTemplates(List<CookbookResource> templates) {
         this.templates = templates;
     }
 
     @JsonProperty("root_files")
-    public List<Map> getRootFiles() {
+    public List<CookbookResource> getRootFiles() {
         return rootFiles;
     }
 
     @JsonProperty("root_files")
-    public void setRootFiles(List<Map> rootFiles) {
+    public void setRootFiles(List<CookbookResource> rootFiles) {
         this.rootFiles = rootFiles;
     }
 
     @JsonProperty("files")
-    public List<Map> getFiles() {
+    public List<CookbookResource> getFiles() {
         return files;
     }
 
     @JsonProperty("files")
-    public void setFiles(List<Map> files) {
+    public void setFiles(List<CookbookResource> files) {
         this.files = files;
     }
 
@@ -224,11 +224,11 @@ public class Cookbook {
     }
 
     @JsonProperty("resources")
-    public List<Map> getResources() {
+    public List<CookbookResource> getResources() {
         return resources;
     }
 
-    public void setResources(List<Map> resources) {
+    public void setResources(List<CookbookResource> resources) {
         this.resources = resources;
     }
 

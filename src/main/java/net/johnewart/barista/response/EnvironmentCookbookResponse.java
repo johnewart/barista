@@ -2,7 +2,7 @@ package net.johnewart.barista.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import net.johnewart.barista.core.Cookbook;
-import net.johnewart.barista.core.Recipe;
+import net.johnewart.barista.core.CookbookResource;
 
 import java.util.List;
 import java.util.Map;
@@ -40,45 +40,45 @@ public class EnvironmentCookbookResponse {
     }
 
     @JsonProperty("definitions")
-    public List<Map> getDefinitions() {
+    public List<CookbookResource> getDefinitions() {
         return cookbook.getDefinitions();
     }
 
     @JsonProperty("libraries")
-    public List<Map> getLibraries() {
+    public List<CookbookResource> getLibraries() {
         return cookbook.getLibraries();
     }
 
     @JsonProperty("attributes")
-    public List<Map> getAttributes() {
+    public List<CookbookResource> getAttributes() {
         return cookbook.getAttributes();
     }
 
     @JsonProperty("recipes")
-    public List<Recipe> getRecipes() {
+    public List<CookbookResource> getRecipes() {
         return cookbook.getRecipes();
     }
 
     @JsonProperty("providers")
-    public List<Map> getProviders() {
+    public List<CookbookResource> getProviders() {
         return cookbook.getProviders();
     }
 
 
     @JsonProperty("templates")
-    public List<Map> getTemplates() {
+    public List<CookbookResource> getTemplates() {
         return cookbook.getTemplates();
     }
 
 
     @JsonProperty("root_files")
-    public List<Map> getRootFiles() {
+    public List<CookbookResource> getRootFiles() {
         return cookbook.getRootFiles();
     }
 
 
     @JsonProperty("files")
-    public List<Map> getFiles() {
+    public List<CookbookResource> getFiles() {
         return cookbook.getFiles();
     }
 
@@ -96,7 +96,7 @@ public class EnvironmentCookbookResponse {
 
 
     @JsonProperty("resources")
-    public List<Map> getResources() {
+    public List<CookbookResource> getResources() {
         return cookbook.getResources();
     }
 

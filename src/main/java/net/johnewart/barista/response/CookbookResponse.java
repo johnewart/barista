@@ -2,7 +2,7 @@ package net.johnewart.barista.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import net.johnewart.barista.core.Cookbook;
-import net.johnewart.barista.core.Recipe;
+import net.johnewart.barista.core.CookbookResource;
 
 import java.util.List;
 import java.util.Map;
@@ -40,7 +40,7 @@ public class CookbookResponse {
     }
 
     @JsonProperty("recipes")
-    public List<Recipe> getRecipes() {
+    public List<CookbookResource> getRecipes() {
         return cookbook.getRecipes();
     }
 

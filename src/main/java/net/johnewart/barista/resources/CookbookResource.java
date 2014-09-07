@@ -116,7 +116,7 @@ public class CookbookResource {
         Cookbook removed =  cookbookDAO.removeByNameAndVersion(cookbookName, cookbookVersion);
 
         if(removed != null) {
-            for(Recipe recipe : removed.getRecipes()) {
+            for(net.johnewart.barista.core.CookbookResource recipe : removed.getRecipes()) {
                 String hash = recipe.getChecksum();
                 fileStorageEngine.remove(hash);
             }
@@ -182,7 +182,7 @@ public class CookbookResource {
         List<String> recipes = new LinkedList<>();
 
         for(Cookbook cookbook : latestVersions) {
-            for(Recipe recipe : cookbook.getRecipes()) {
+            for(net.johnewart.barista.core.CookbookResource recipe : cookbook.getRecipes()) {
                 String recipeName = recipe.getName().replace(".rb", "");
                 String fqName = String.format("%s::%s", cookbook.getCookbookName(), recipeName);
                 recipes.add(fqName);

@@ -3,7 +3,7 @@ package net.johnewart.barista.core;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import net.johnewart.barista.utils.URLGenerator;
 
-public class Recipe {
+public class CookbookResource {
 
     @JsonProperty("name")
     String name;
@@ -14,7 +14,7 @@ public class Recipe {
     @JsonProperty("specificity")
     String specificity;
 
-    public Recipe() { }
+    public CookbookResource() { }
 
     @JsonProperty("url")
     public String getUrl() {
