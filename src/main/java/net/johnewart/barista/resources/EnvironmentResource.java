@@ -4,7 +4,7 @@ import com.codahale.metrics.annotation.Timed;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
 import net.johnewart.barista.core.*;
-import net.johnewart.barista.core.CookbookResource;
+import net.johnewart.barista.core.CookbookComponent;
 import net.johnewart.barista.data.CookbookDAO;
 import net.johnewart.barista.data.EnvironmentDAO;
 import net.johnewart.barista.data.RoleDAO;
@@ -291,7 +291,7 @@ public class EnvironmentResource {
         }
 
         for(Cookbook cookbook : cookbooks) {
-            for(CookbookResource recipe : cookbook.getRecipes()) {
+            for(CookbookComponent recipe : cookbook.getRecipes()) {
                 String recipeFileName = recipe.getName();
                 if(recipeFileName != null) {
                     String recipeName = recipeFileName.replace(".rb", "");

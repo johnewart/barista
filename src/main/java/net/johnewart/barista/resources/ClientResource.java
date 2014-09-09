@@ -16,6 +16,7 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -33,7 +34,7 @@ public class ClientResource {
 
     @POST
     @Timed(name = "client-create")
-    public Response create(Client client) {
+    public Response create(Client client, @Context UriInfo uriInfo) {
 
         if(clientDAO.getByName(client.getName()) != null) {
             throw new ChefAPIException(409, String.format("Client with name '%s' already exists.", client.getName()));

@@ -2,7 +2,7 @@ package net.johnewart.barista.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import net.johnewart.barista.core.Cookbook;
-import net.johnewart.barista.core.CookbookResource;
+import net.johnewart.barista.core.CookbookComponent;
 
 import java.util.List;
 import java.util.Map;
@@ -40,45 +40,45 @@ public class EnvironmentCookbookResponse {
     }
 
     @JsonProperty("definitions")
-    public List<CookbookResource> getDefinitions() {
+    public List<CookbookComponent> getDefinitions() {
         return cookbook.getDefinitions();
     }
 
     @JsonProperty("libraries")
-    public List<CookbookResource> getLibraries() {
+    public List<CookbookComponent> getLibraries() {
         return cookbook.getLibraries();
     }
 
     @JsonProperty("attributes")
-    public List<CookbookResource> getAttributes() {
+    public List<CookbookComponent> getAttributes() {
         return cookbook.getAttributes();
     }
 
     @JsonProperty("recipes")
-    public List<CookbookResource> getRecipes() {
+    public List<CookbookComponent> getRecipes() {
         return cookbook.getRecipes();
     }
 
     @JsonProperty("providers")
-    public List<CookbookResource> getProviders() {
+    public List<CookbookComponent> getProviders() {
         return cookbook.getProviders();
     }
 
 
     @JsonProperty("templates")
-    public List<CookbookResource> getTemplates() {
+    public List<CookbookComponent> getTemplates() {
         return cookbook.getTemplates();
     }
 
 
     @JsonProperty("root_files")
-    public List<CookbookResource> getRootFiles() {
+    public List<CookbookComponent> getRootFiles() {
         return cookbook.getRootFiles();
     }
 
 
     @JsonProperty("files")
-    public List<CookbookResource> getFiles() {
+    public List<CookbookComponent> getFiles() {
         return cookbook.getFiles();
     }
 
@@ -96,7 +96,7 @@ public class EnvironmentCookbookResponse {
 
 
     @JsonProperty("resources")
-    public List<CookbookResource> getResources() {
+    public List<CookbookComponent> getResources() {
         return cookbook.getResources();
     }
 

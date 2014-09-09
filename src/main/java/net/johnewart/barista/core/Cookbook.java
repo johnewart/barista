@@ -20,15 +20,15 @@ public class Cookbook {
     String jsonClass;
     Boolean frozen;
     
-    List<CookbookResource> definitions;
-    List<CookbookResource> libraries;
-    List<CookbookResource> attributes;
-    List<CookbookResource> recipes;
-    List<CookbookResource> providers;
-    List<CookbookResource> resources;
-    List<CookbookResource> templates;
-    List<CookbookResource> rootFiles;
-    List<CookbookResource> files;
+    List<CookbookComponent> definitions;
+    List<CookbookComponent> libraries;
+    List<CookbookComponent> attributes;
+    List<CookbookComponent> recipes;
+    List<CookbookComponent> providers;
+    List<CookbookComponent> resources;
+    List<CookbookComponent> templates;
+    List<CookbookComponent> rootFiles;
+    List<CookbookComponent> files;
     Map<String, Object> metadata;
     
     SemanticVersion semanticVersion;
@@ -123,81 +123,81 @@ public class Cookbook {
     }
 
     @JsonProperty("definitions")
-    public List<CookbookResource> getDefinitions() {
+    public List<CookbookComponent> getDefinitions() {
         return definitions;
     }
 
     @JsonProperty("definitions")
-    public void setDefinitions(List<CookbookResource> definitions) {
+    public void setDefinitions(List<CookbookComponent> definitions) {
         this.definitions = definitions;
     }
 
     @JsonProperty("libraries")
-    public List<CookbookResource> getLibraries() {
+    public List<CookbookComponent> getLibraries() {
         return libraries;
     }
 
     @JsonProperty("libraries")
-    public void setLibraries(List<CookbookResource> libraries) {
+    public void setLibraries(List<CookbookComponent> libraries) {
         this.libraries = libraries;
     }
 
     @JsonProperty("attributes")
-    public List<CookbookResource> getAttributes() {
+    public List<CookbookComponent> getAttributes() {
         return attributes;
     }
 
     @JsonProperty("attributes")
-    public void setAttributes(List<CookbookResource> attributes) {
+    public void setAttributes(List<CookbookComponent> attributes) {
         this.attributes = attributes;
     }
 
     @JsonProperty("recipes")
-    public List<CookbookResource> getRecipes() {
+    public List<CookbookComponent> getRecipes() {
         return recipes;
     }
 
-    public void setRecipes(List<CookbookResource> recipes) {
+    public void setRecipes(List<CookbookComponent> recipes) {
         this.recipes = recipes;
     }
 
     @JsonProperty("providers")
-    public List<CookbookResource> getProviders() {
+    public List<CookbookComponent> getProviders() {
         return providers;
     }
 
     @JsonProperty("providers")
-    public void setProviders(List<CookbookResource> providers) {
+    public void setProviders(List<CookbookComponent> providers) {
         this.providers = providers;
     }
 
     @JsonProperty("templates")
-    public List<CookbookResource> getTemplates() {
+    public List<CookbookComponent> getTemplates() {
         return templates;
     }
 
     @JsonProperty("templates")
-    public void setTemplates(List<CookbookResource> templates) {
+    public void setTemplates(List<CookbookComponent> templates) {
         this.templates = templates;
     }
 
     @JsonProperty("root_files")
-    public List<CookbookResource> getRootFiles() {
+    public List<CookbookComponent> getRootFiles() {
         return rootFiles;
     }
 
     @JsonProperty("root_files")
-    public void setRootFiles(List<CookbookResource> rootFiles) {
+    public void setRootFiles(List<CookbookComponent> rootFiles) {
         this.rootFiles = rootFiles;
     }
 
     @JsonProperty("files")
-    public List<CookbookResource> getFiles() {
+    public List<CookbookComponent> getFiles() {
         return files;
     }
 
     @JsonProperty("files")
-    public void setFiles(List<CookbookResource> files) {
+    public void setFiles(List<CookbookComponent> files) {
         this.files = files;
     }
 
@@ -224,11 +224,11 @@ public class Cookbook {
     }
 
     @JsonProperty("resources")
-    public List<CookbookResource> getResources() {
+    public List<CookbookComponent> getResources() {
         return resources;
     }
 
-    public void setResources(List<CookbookResource> resources) {
+    public void setResources(List<CookbookComponent> resources) {
         this.resources = resources;
     }
 
