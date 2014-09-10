@@ -12,14 +12,6 @@ public class MemoryClientDAO implements ClientDAO {
 
     public MemoryClientDAO() {
         clientMap = new ConcurrentHashMap<>();
-        Client adminClient = new Client("admin");
-        clientMap.put("admin", adminClient);
-        Client webuiClient = new Client("chef-webui");
-        clientMap.put("chef-webui", webuiClient);
-        Client validator = new Client("chef-validator");
-        clientMap.put("chef-validator", validator);
-
-
     }
 
     @Override

@@ -12,9 +12,6 @@ public class MemoryEnvironmentDAO implements EnvironmentDAO {
 
     public MemoryEnvironmentDAO() {
         environmentMap = new ConcurrentHashMap<>();
-        // Initialize _default environment
-        Environment defaultEnv = new Environment("_default");
-        environmentMap.put("_default", defaultEnv);
     }
 
     @Override

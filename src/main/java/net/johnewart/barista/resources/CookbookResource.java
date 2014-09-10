@@ -45,18 +45,14 @@ public class CookbookResource {
                            @PathParam("name") String cookbookName,
                            @PathParam("version") String cookbookVersion,
                            @QueryParam("force") Optional<String> forceOption) {
-        if(cookbook.getVersion() == null) {
-            // WTF?
-            LOG.debug("No vesion");
-        }
+
         Cookbook existing = cookbookDAO.findByNameAndVersion(cookbookName, cookbookVersion);
 
         if(existing == null) {
-
             cookbookDAO.store(cookbook);
             return Response.status(201).entity(cookbook).build();
         } else {
-            if(existing.isFrozen() && !forceOption.isPresent()) {
+            if(existing.isFrozen() && (!forceOption.isPresent() || forceOption.get().equalsIgnoreCase("false"))) {
                 throw new ChefAPIException(409, String.format("Cookbook '%s' is frozen.", cookbook.getCookbookName()));
             }
 
