@@ -6,6 +6,7 @@ import io.dropwizard.Application;
 import io.dropwizard.assets.AssetsBundle;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
+import io.dropwizard.views.ViewBundle;
 import net.johnewart.barista.auth.ChefAuthProvider;
 import net.johnewart.barista.auth.ChefAuthenticator;
 import net.johnewart.barista.core.Client;
@@ -18,7 +19,6 @@ import net.johnewart.barista.data.storage.FileStorageEngine;
 import net.johnewart.barista.data.storage.OnDiskFileStorageEngine;
 import net.johnewart.barista.exceptions.ChefAPIExceptionMapper;
 import net.johnewart.barista.exceptions.JSONMappingExceptionHandler;
-import net.johnewart.barista.filters.OpscodeAuthFilter;
 import net.johnewart.barista.filters.RequestSizeFilter;
 import net.johnewart.barista.resources.*;
 import org.apache.solr.client.solrj.SolrServer;
@@ -46,16 +46,13 @@ public class BaristaApplication extends Application<BaristaConfiguration> {
 
     @Override
     public void initialize(Bootstrap<BaristaConfiguration> bootstrap) {
-        bootstrap.addBundle(new AssetsBundle("/assets", "/assets"));
+        bootstrap.addBundle(new AssetsBundle());
+        bootstrap.addBundle(new ViewBundle());
     }
 
     @Override
     public void run(BaristaConfiguration configuration,
                     Environment environment) throws ClassNotFoundException, UnknownHostException {
-
-        //final DBIFactory factory = new DBIFactory();
-        //final DBI jdbi = factory.build(environment, configuration.getDataSourceFactory(), "postgresql");
-        final JedisPool jedisPool = new JedisPool(new JedisPoolConfig(), "localhost", 6379);
 
         final FileStorageEngine fileStorageEngine = new OnDiskFileStorageEngine("/tmp/chef");
 
@@ -72,6 +69,7 @@ public class BaristaApplication extends Application<BaristaConfiguration> {
 
 
         if(redis) {
+            final JedisPool jedisPool = new JedisPool(new JedisPoolConfig(), "localhost", 6379);
             clientDAO = new RedisClientDAO(jedisPool);
             cookbookDAO = new RedisCookbookDAO(jedisPool);
             nodeDAO = new RedisNodeDAO(jedisPool);
@@ -101,27 +99,10 @@ public class BaristaApplication extends Application<BaristaConfiguration> {
             clientDAO = new MemoryClientDAO();
         }
 
-        // Init some things
-        Client adminClient = new Client("admin");
-        adminClient.generateKeys();
-        clientDAO.store(adminClient);
 
-        Client webuiClient = new Client("chef-webui");
-        webuiClient.generateKeys();
-        clientDAO.store(webuiClient);
-
-        Client validator = new Client("chef-validator");
-        validator.generateKeys();
-        clientDAO.store(validator);
-
-        // Initialize _default environment
-        net.johnewart.barista.core.Environment defaultEnv = new net.johnewart.barista.core.Environment("_default");
-        environmentDAO.store(defaultEnv);
-        // Create initial admin user
-        User adminUser = new User("admin");
-        adminUser.setAdmin(true);
-        userDAO.store(adminUser);
-
+        setupClients(clientDAO);
+        setupEnvironments(environmentDAO);
+        setupUsers(userDAO);
 
         FilterHolder requestSizeFilter = new FilterHolder(new RequestSizeFilter());
         environment.getApplicationContext().addFilter(requestSizeFilter, "/*", EnumSet.of(DispatcherType.REQUEST));
@@ -130,6 +111,7 @@ public class BaristaApplication extends Application<BaristaConfiguration> {
         FilterHolder opscodeAuthFilter = new FilterHolder(new OpscodeAuthFilter(userDAO));
         environment.getApplicationContext().addFilter(opscodeAuthFilter, "/environments/*", EnumSet.of(DispatcherType.REQUEST));
           */
+
         RewriteHandler rewrite = new RewriteHandler();
         RewriteRegexRule regex = new RewriteRegexRule();
         regex.setRegex("(//+)(.*)");
@@ -154,6 +136,7 @@ public class BaristaApplication extends Application<BaristaConfiguration> {
         environment.jersey().register(new SearchResource(solrServer));
         environment.jersey().register(new DatabagResource(databagDAO));
         environment.jersey().register(new FileStoreResource(fileStorageEngine));
+        environment.jersey().register(new AdminResource(userDAO, cookbookDAO, clientDAO));
     }
 
     // This will create a client object that we can use to interact with Riak
@@ -173,6 +156,37 @@ public class BaristaApplication extends Application<BaristaConfiguration> {
         cluster.start();
 
         return cluster;
+    }
+
+    private void setupClients(ClientDAO clientDAO) {
+        String[] clients = {"admin", "chef-webui", "chef-validator"};
+
+        for(String clientName : clients) {
+            if (clientDAO.getByName(clientName) == null) {
+                Client client = new Client(clientName);
+                client.generateKeys();
+                clientDAO.store(client);
+            }
+        }
+    }
+
+
+    private void setupEnvironments(EnvironmentDAO environmentDAO) {
+        // Initialize _default environment
+        if(environmentDAO.getByName("_default") == null) {
+            net.johnewart.barista.core.Environment defaultEnv = new net.johnewart.barista.core.Environment("_default");
+            environmentDAO.store(defaultEnv);
+        }
+    }
+
+    private void setupUsers(UserDAO userDAO) {
+        // Create initial admin user
+        if (userDAO.getByName("admin") == null) {
+            User adminUser = new User("admin");
+            adminUser.setAdmin(true);
+            adminUser.generateKeys();
+            userDAO.store(adminUser);
+        }
     }
 
 }
