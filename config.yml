@@ -27,6 +27,11 @@ database:
   # the minimum amount of time an connection must sit idle in the pool before it is eligible for eviction
   minIdleTime: 1 minute
 
+storageEngine: riak
+riak:
+  hosts:
+    - 127.0.0.1
+  port: 8087
 # use the simple server factory if you only want to run on a single port
 #server:
 #  type: simple

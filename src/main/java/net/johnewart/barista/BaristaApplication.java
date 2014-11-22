@@ -9,6 +9,8 @@ import io.dropwizard.setup.Environment;
 import io.dropwizard.views.ViewBundle;
 import net.johnewart.barista.auth.ChefAuthProvider;
 import net.johnewart.barista.auth.ChefAuthenticator;
+import net.johnewart.barista.config.RedisConfiguration;
+import net.johnewart.barista.config.RiakConfiguration;
 import net.johnewart.barista.core.Client;
 import net.johnewart.barista.core.User;
 import net.johnewart.barista.data.*;
@@ -27,14 +29,23 @@ import org.apache.solr.core.CoreContainer;
 import org.eclipse.jetty.rewrite.handler.RewriteHandler;
 import org.eclipse.jetty.rewrite.handler.RewriteRegexRule;
 import org.eclipse.jetty.servlet.FilterHolder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 
 import javax.servlet.DispatcherType;
 import java.net.UnknownHostException;
 import java.util.EnumSet;
+import java.util.LinkedList;
+import java.util.List;
 
 public class BaristaApplication extends Application<BaristaConfiguration> {
+    private final static String RIAK = "riak";
+    private final static String REDIS = "redis";
+    private final static String MEMORY = "memory";
+    private final static Logger LOG = LoggerFactory.getLogger(BaristaApplication.class);
+
     public static void main(String[] args) throws Exception {
         new BaristaApplication().run(args);
     }
@@ -64,39 +75,44 @@ public class BaristaApplication extends Application<BaristaConfiguration> {
         final DatabagDAO databagDAO;
         final UserDAO userDAO;
         final ClientDAO clientDAO;
-        boolean redis = false;
-        boolean riak = true;
 
 
-        if(redis) {
-            final JedisPool jedisPool = new JedisPool(new JedisPoolConfig(), "localhost", 6379);
-            clientDAO = new RedisClientDAO(jedisPool);
-            cookbookDAO = new RedisCookbookDAO(jedisPool);
-            nodeDAO = new RedisNodeDAO(jedisPool);
-            environmentDAO = new RedisEnvironmentDAO(jedisPool);
-            sandboxDAO = new RedisSandboxDAO(jedisPool);
-            roleDAO = new RedisRoleDAO(jedisPool);
-            databagDAO = new RedisDatabagDAO(jedisPool);
-            userDAO = new RedisUserDAO(jedisPool);
-        } else if (riak) {
-            final RiakCluster cluster = setUpCluster();
-            clientDAO = new RiakClientDAO(cluster);
-            nodeDAO = new RiakNodeDAO(cluster);
-            cookbookDAO = new RiakCookbookDAO(cluster);
-            environmentDAO = new RiakEnvironmentDAO(cluster);
-            sandboxDAO = new RiakSandboxDAO(cluster);
-            roleDAO = new RiakRoleDAO(cluster);
-            databagDAO = new RiakDatabagDAO(cluster);
-            userDAO = new RiakUserDAO(cluster);
-        } else {
-            nodeDAO = new MemoryNodeDAO();
-            cookbookDAO = new MemoryCookbookDAO();
-            environmentDAO = new MemoryEnvironmentDAO();
-            sandboxDAO = new MemorySandboxDAO();
-            roleDAO = new MemoryRoleDAO();
-            databagDAO = new MemoryDatabagDAO();
-            userDAO = new MemoryUserDAO();
-            clientDAO = new MemoryClientDAO();
+        switch(configuration.getStorageEngine()) {
+            case REDIS:
+                LOG.info("Using Redis for persistence");
+                final JedisPool jedisPool = setupRedis(configuration.getRedisConfiguration());
+                clientDAO = new RedisClientDAO(jedisPool);
+                cookbookDAO = new RedisCookbookDAO(jedisPool);
+                nodeDAO = new RedisNodeDAO(jedisPool);
+                environmentDAO = new RedisEnvironmentDAO(jedisPool);
+                sandboxDAO = new RedisSandboxDAO(jedisPool);
+                roleDAO = new RedisRoleDAO(jedisPool);
+                databagDAO = new RedisDatabagDAO(jedisPool);
+                userDAO = new RedisUserDAO(jedisPool);
+                break;
+            case RIAK:
+                LOG.info("Using Riak for persistence");
+                final RiakCluster cluster = setUpCluster(configuration.getRiakConfiguration());
+                clientDAO = new RiakClientDAO(cluster);
+                nodeDAO = new RiakNodeDAO(cluster);
+                cookbookDAO = new RiakCookbookDAO(cluster);
+                environmentDAO = new RiakEnvironmentDAO(cluster);
+                sandboxDAO = new RiakSandboxDAO(cluster);
+                roleDAO = new RiakRoleDAO(cluster);
+                databagDAO = new RiakDatabagDAO(cluster);
+                userDAO = new RiakUserDAO(cluster);
+                break;
+            case MEMORY:
+            default:
+                LOG.info("Using in-memory persistence");
+                nodeDAO = new MemoryNodeDAO();
+                cookbookDAO = new MemoryCookbookDAO();
+                environmentDAO = new MemoryEnvironmentDAO();
+                sandboxDAO = new MemorySandboxDAO();
+                roleDAO = new MemoryRoleDAO();
+                databagDAO = new MemoryDatabagDAO();
+                userDAO = new MemoryUserDAO();
+                clientDAO = new MemoryClientDAO();
         }
 
 
@@ -139,20 +155,29 @@ public class BaristaApplication extends Application<BaristaConfiguration> {
         environment.jersey().register(new AdminResource(userDAO, cookbookDAO, clientDAO));
     }
 
-    // This will create a client object that we can use to interact with Riak
-    private static RiakCluster setUpCluster() throws UnknownHostException {
-        // This example will use only one node listening on localhost:10017
-        RiakNode node = new RiakNode.Builder()
-                .withRemoteAddress("127.0.0.1")
-                .withRemotePort(8087)
+    // TODO: Support multiple hosts
+    private static JedisPool setupRedis(RedisConfiguration config) {
+        return new JedisPool(new JedisPoolConfig(), config.getHost(), config.getPort());
+    }
 
+
+    // TODO: Support heterogeneous ports
+    private static RiakCluster setUpCluster(RiakConfiguration config) throws UnknownHostException {
+        List<RiakNode> nodeList = new LinkedList<>();
+        Integer riakPort = config.getPort();
+
+        for(String hostname : config.getHosts()) {
+            LOG.info("Adding " + hostname + ":" + riakPort + " to Riak cluster config.");
+            RiakNode node = new RiakNode.Builder()
+                    .withRemoteAddress(hostname)
+                    .withRemotePort(riakPort)
+                    .build();
+            nodeList.add(node);
+        }
+
+        RiakCluster cluster = new RiakCluster.Builder(nodeList)
                 .build();
 
-        // This cluster object takes our one node as an argument
-        RiakCluster cluster = new RiakCluster.Builder(node)
-                .build();
-
-        // The cluster must be started to work, otherwise you will see errors
         cluster.start();
 
         return cluster;
