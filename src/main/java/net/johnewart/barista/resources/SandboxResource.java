@@ -67,11 +67,16 @@ public class SandboxResource {
     @Path("{sandboxId:.*?}")
     public Response update(@PathParam("sandboxId") String sandboxId, Sandbox sandbox) {
         Sandbox existing = sandboxDAO.getById(sandboxId);
-        for(String checksum : existing.getChecksums().keySet()) {
-            if(!fileStorage.contains(checksum)) {
-                throw new ChefAPIException(503, String.format("Checksum not uploaded: %s", checksum));
+        Map<String, String> checksums = existing.getChecksums();
+
+        if(checksums != null) {
+            for(String checksum : checksums.keySet()) {
+                if(!fileStorage.contains(checksum)) {
+                    throw new ChefAPIException(503, String.format("Checksum not uploaded: %s", checksum));
+                }
             }
         }
+
         existing.setCompleted(sandbox.isCompleted());
         sandboxDAO.store(existing);
         return Response.ok(existing).build();

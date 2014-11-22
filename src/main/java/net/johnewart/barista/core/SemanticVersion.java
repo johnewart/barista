@@ -4,11 +4,16 @@ public class SemanticVersion implements Comparable<SemanticVersion> {
     final public long major, minor, patchlevel;
 
     public SemanticVersion(String versionString) {
-        if(versionString != null) {
+        if(versionString != null && versionString.length() > 0) {
             String[] parts = versionString.split("\\.");
 
             major = Long.parseLong(parts[0]);
-            minor = Long.parseLong(parts[1]);
+
+            if(parts.length > 1) {
+                minor = Long.parseLong(parts[1]);
+            } else {
+                minor = 0;
+            }
 
             if (parts.length > 2) {
                 patchlevel = Long.parseLong(parts[2]);
@@ -32,6 +37,10 @@ public class SemanticVersion implements Comparable<SemanticVersion> {
         }
     }
 
+    public boolean isGreaterThan(SemanticVersion other) {
+        return compareTo(other)  < 0;
+    }
+
     @Override
     public int compareTo(SemanticVersion other) {
         if(this.major > other.major) {
@@ -53,6 +62,10 @@ public class SemanticVersion implements Comparable<SemanticVersion> {
         }
 
         return 0;
+    }
+
+    public boolean equals(SemanticVersion other) {
+        return this.compareTo(other) == 0;
     }
 
     public String toString() {

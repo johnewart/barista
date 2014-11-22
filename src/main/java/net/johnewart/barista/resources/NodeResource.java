@@ -73,7 +73,7 @@ public class NodeResource {
 
     @GET
     @Timed(name = "node-list")
-    public java.util.Map<String, String> listNodes(@Auth User user) {
+    public java.util.Map<String, String> listNodes() {
         Map<String, String> nodes = new HashMap<>();
 
         for (Node node : nodeDAO.findAll()) {

@@ -115,9 +115,22 @@ public class DatabagResource {
         }
 
         // Do the write.
-        String id = (String)rawData.get("id");
+        Map<String, Object> rawItem = (Map<String, Object>) rawData.get("raw_data");
+        final String id;
+        if(rawItem == null) {
+            id = (String)rawData.get("id");
+        } else {
+            id = (String)rawItem.get("id");
+        }
+
         if(databag.getItems().get(id) == null) {
-            DatabagItem item = new DatabagItem(id, databagName, rawData);
+            final DatabagItem item;
+            if(rawItem != null) {
+                item = new DatabagItem(id, databagName, rawItem);
+            } else {
+                item = new DatabagItem(id, databagName, rawData);
+            }
+
             databag.getItems().put(id, item);
             databagDAO.store(databag);
             return Response.status(201).entity(item.toPutResponse()).build();

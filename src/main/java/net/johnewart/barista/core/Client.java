@@ -3,13 +3,6 @@ package net.johnewart.barista.core;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import net.johnewart.barista.utils.ChefKeyGenerator;
 import net.johnewart.barista.utils.PEMPair;
-import org.bouncycastle.openssl.PEMWriter;
-
-import java.io.IOException;
-import java.io.StringWriter;
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
-import java.security.NoSuchAlgorithmException;
 
 public class Client {
     @JsonProperty("name")
@@ -131,33 +124,6 @@ public class Client {
         PEMPair pemPair = ChefKeyGenerator.generateKeyPairAsPEM();
         this.privateKey = new String(pemPair.privateKeyPEM);
         this.publicKey = new String(pemPair.publicKeyPEM);
-        /*
-        try {
-            KeyPairGenerator generator;
-            generator = KeyPairGenerator.getInstance("RSA");
-            generator.initialize(1024);
-            KeyPair keyPair = generator.genKeyPair();
-            try {
-                StringWriter stringWriter = new StringWriter();
-                PEMWriter pemWriter = new PEMWriter(stringWriter);
-                pemWriter.writeObject( keyPair.getPrivate());
-                pemWriter.close();
-                String privateKeyString = stringWriter.toString();
-                this.privateKey = privateKeyString;
-
-                stringWriter = new StringWriter();
-                pemWriter = new PEMWriter(stringWriter);
-                pemWriter.writeObject( keyPair.getPublic());
-                pemWriter.close();
-                String publicKeyString = stringWriter.toString();
-                this.publicKey = publicKeyString;
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        }*/
     }
 
     public boolean isAdmin() {

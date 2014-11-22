@@ -61,7 +61,7 @@ public class CookbookFilter {
         }
     }
 
-    private static List<Cookbook> orderCookbooks(Collection<Cookbook> cookbooks, final int numVersions) {
+    public static List<Cookbook> orderCookbooks(Collection<Cookbook> cookbooks, final int numVersions) {
         List<Cookbook> cookbookList = new ArrayList<>(cookbooks);
         Collections.sort(cookbookList, new Comparator<Cookbook>() {
             @Override

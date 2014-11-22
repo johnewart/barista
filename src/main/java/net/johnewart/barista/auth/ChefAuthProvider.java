@@ -96,6 +96,8 @@ public class ChefAuthProvider<T> implements InjectableProvider<Auth, Parameter> 
                 final Optional<T> result = authenticator.authenticate(userid);
                 if (result.isPresent()) {
                     return result.get();
+                } else {
+                    throw new WebApplicationException(Response.Status.UNAUTHORIZED);
                 }
             } catch (IllegalArgumentException e) {
                 LOGGER.debug("Error decoding credentials", e);

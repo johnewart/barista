@@ -3,8 +3,10 @@ package net.johnewart.barista.resources;
 import com.codahale.metrics.annotation.Timed;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
+import io.dropwizard.auth.Auth;
 import net.johnewart.barista.core.*;
 import net.johnewart.barista.core.CookbookComponent;
+import net.johnewart.barista.core.cookbook.CookbookFilter;
 import net.johnewart.barista.data.CookbookDAO;
 import net.johnewart.barista.data.EnvironmentDAO;
 import net.johnewart.barista.data.RoleDAO;
@@ -353,7 +355,6 @@ public class EnvironmentResource {
 
         Set<String> cookbookNames = new HashSet<>();
 
-        final boolean singleCookbook;
         if(cookbookName != null && !cookbookName.isEmpty())
         {
             LOG.debug("Fetching only " + cookbookName);
@@ -363,10 +364,8 @@ public class EnvironmentResource {
             }
 
             cookbookNames.add(cookbookName);
-            singleCookbook = true;
         } else {
             cookbookNames.addAll(cookbookDAO.findAllCookbookNames());
-            singleCookbook = false;
         }
 
         Map<String, VersionConstraint> constraintMap = environment.getVersionConstraints();
@@ -374,7 +373,12 @@ public class EnvironmentResource {
 
         for(String cName : cookbookNames) {
             VersionConstraint constraint = constraintMap.get(cName);
-            List<Cookbook> cookbookList = cookbookDAO.findOneWithConstraints(cName, constraint, numVersions);
+            final List<Cookbook> cookbookList;
+            if(constraint != null) {
+                cookbookList = cookbookDAO.findOneWithConstraints(cName, constraint, numVersions);
+            } else {
+                cookbookList = CookbookFilter.orderCookbooks(cookbookDAO.findAllByName(cName), numVersions);
+            }
 
             CookbookLocation cookbookLocation = new CookbookLocation(cName);
 

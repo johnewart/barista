@@ -46,6 +46,9 @@ public class CookbookResource {
                            @PathParam("version") String cookbookVersion,
                            @QueryParam("force") Optional<String> forceOption) {
 
+        if(cookbookName.equals("the_art_of_french_cooking")) {
+            LOG.warn("Evil cookbook!");
+        }
         Cookbook existing = cookbookDAO.findByNameAndVersion(cookbookName, cookbookVersion);
 
         if(existing == null) {
@@ -101,13 +104,15 @@ public class CookbookResource {
     @Timed(name = "cookbook-delete-version")
     @Path("{name:[a-zA-Z0-9:_-]+}/{version:\\d+\\.\\d+(\\.\\d+)?}")
     public Response deleteCookbook(@PathParam("name") String cookbookName,
-                                   @PathParam("version") String cookbookVersion,
-                                   @Auth User user) {
+                                   @PathParam("version") String cookbookVersion) {
 
-        if (user.isAdmin()) {
+        /*if (user.isAdmin()) {
             throw new ChefAPIException(405, "Can't do that as an admin!");
-        }
+        } */
 
+        if(cookbookName.equals("the_art_of_french_cooking")) {
+            LOG.warn("Evil cookbook!");
+        }
         LOG.debug("Deleting version " + cookbookVersion + " of " + cookbookName);
         Cookbook removed =  cookbookDAO.removeByNameAndVersion(cookbookName, cookbookVersion);
 

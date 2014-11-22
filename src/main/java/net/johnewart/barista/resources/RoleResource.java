@@ -6,6 +6,7 @@ import io.dropwizard.auth.Auth;
 import net.johnewart.barista.core.Role;
 import net.johnewart.barista.core.RunList;
 import net.johnewart.barista.core.User;
+import net.johnewart.barista.data.EnvironmentDAO;
 import net.johnewart.barista.data.RoleDAO;
 import net.johnewart.barista.exceptions.ChefAPIException;
 import org.slf4j.Logger;
@@ -26,9 +27,11 @@ public class RoleResource {
     private static final Logger LOG = LoggerFactory.getLogger(RoleResource.class);
 
     private RoleDAO roleDAO;
+    private final EnvironmentDAO environmentDAO;
 
-    public RoleResource(RoleDAO roleDAO) {
+    public RoleResource(RoleDAO roleDAO, EnvironmentDAO environmentDAO) {
         this.roleDAO = roleDAO;
+        this.environmentDAO = environmentDAO;
     }
 
 
@@ -105,13 +108,8 @@ public class RoleResource {
     @DELETE
     @Timed(name = "role-delete-environments")
     @Path("{name:[A-Za-z0-9_:-]+}/environments")
-    public Response deleteRoleEnvironments(@PathParam("name") String roleName,
-                                           @Auth User user) {
+    public Response deleteRoleEnvironments(@PathParam("name") String roleName) {
         LOG.debug("Deleting environments for " + roleName);
-
-        if(user.isAdmin()) {
-
-        }
 
         Role role = roleDAO.getByName(roleName);
 
@@ -128,12 +126,11 @@ public class RoleResource {
     @Timed(name = "role-delete-environments")
     @Path("{name:[A-Za-z0-9_:-]+}/environments/{environmentName:[A-Za-z0-9_:-]+}")
     public Response deleteRoleEnvironments(@PathParam("name") String roleName,
-                                           @PathParam("environmentName") String environmentName,
-                                           @Auth User user) {
+                                           @PathParam("environmentName") String environmentName) {
         LOG.debug("Deleting env: " + environmentName + " for " + roleName);
 
-        if(user.isAdmin())
-            return Response.status(405).build();
+/*        if(user.isAdmin())
+            return Response.status(405).build();*/
             //throw new ChefAPIException(405, "Can't do that as an admin");
 
         Role role = roleDAO.getByName(roleName);
@@ -178,7 +175,7 @@ public class RoleResource {
             throw new ChefAPIException(404, String.format("Cannot load role %s", roleName));
         } else {
 
-          List<String> environmentNames = new LinkedList<>();
+            List<String> environmentNames = new LinkedList<>();
             environmentNames.add("_default");
 
             for(String environmentName : role.getEnvRunLists().keySet()) {
@@ -202,6 +199,10 @@ public class RoleResource {
 
         Role role = roleDAO.getByName(roleName);
 
+        if(environmentDAO.getByName(environmentName) == null) {
+            throw new ChefAPIException(404, String.format("Can't find environment '%s'", environmentName));
+        }
+
         if (role == null) {
             throw new ChefAPIException(404, String.format("Cannot load role %s", roleName));
         } else {
@@ -213,11 +214,11 @@ public class RoleResource {
                 runlist = role.getEnvRunLists().get(environmentName);
             }
 
-            if(runlist == null) {
-                throw new ChefAPIException(404, String.format("Can't find environment '%s' for role '%s'", environmentName, roleName));
-            }
+            //if(runlist == null) {
+                //throw new ChefAPIException(404, String.format("Can't find environment '%s' for role '%s'", environmentName, roleName));
+            //}
 
-            if (runlist.size() == 0) {
+            if (runlist == null || runlist.size() == 0) {
                 // Client expects a nil value in place of an empty list
                 Map<String, List<String>> result = new HashMap<>();
                 result.put("run_list", null);

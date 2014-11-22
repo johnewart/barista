@@ -2,7 +2,6 @@ package net.johnewart.barista.resources;
 
 import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.collect.ImmutableMap;
 import net.johnewart.barista.core.User;
 import net.johnewart.barista.data.UserDAO;
 import net.johnewart.barista.exceptions.ChefAPIException;
@@ -13,9 +12,7 @@ import org.slf4j.LoggerFactory;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @Path("/users")
@@ -31,10 +28,13 @@ public class UserResource {
 
     @POST
     @Timed(name = "user-create")
-    public Response auth(User user) {
+    public Response create(User user) {
         if (userDAO.getByName(user.getName()) != null) {
             throw new ChefAPIException(409, String.format("User with username %s already exists.", user.getName()));
         } else {
+            if (user.getPublicKey() == null) {
+                user.generateKeys();
+            }
             userDAO.store(user);
             UserResponse userResponse = new UserResponse(user);
             return Response
@@ -65,6 +65,7 @@ public class UserResource {
             results.put("name", userName);
             results.put("openid", null);
             results.put("admin", user.isAdmin());
+            results.put("public_key", user.getPublicKey());
             return results;
         } else {
             throw new ChefAPIException(404, String.format("User %s does not exist", userName));
@@ -76,8 +77,12 @@ public class UserResource {
     @Path("{name:[a-zA-Z0-9_-]+}")
     public Response deleteUser(@PathParam("name") String userName) {
         LOG.debug("Deleting " + userName);
-        userDAO.removeByName(userName);
-        return Response.status(200).build();
+        User u = userDAO.removeByName(userName);
+        if (u == null) {
+            return Response.status(404).build();
+        } else {
+            return Response.status(200).entity(u).build();
+        }
     }
 
     @PUT
@@ -86,10 +91,34 @@ public class UserResource {
     public Response update(@PathParam("name") String username,
                            User user) {
         User existing = userDAO.getByName(username);
+
         if(existing != null) {
+            Map<String, String> response = new HashMap<>();
+
+            boolean publicKeyUpdated = false;
+            if(user.getPublicKey() != null) {
+                if(user.getPublicKey().equals("true")) {
+                    user.generateKeys();
+                    publicKeyUpdated = true;
+                } else {
+                    user.setPrivateKey(null);
+                    publicKeyUpdated = true;
+                }
+            }
+
+            if(user.getPrivateKey() != null && user.getPrivateKey().equals("true")) {
+                user.generateKeys();
+                publicKeyUpdated = true;
+                response.put("private_key", existing.getPrivateKey());
+            }
+
             existing.update(user);
             userDAO.store(existing);
-            return Response.status(200).entity(ImmutableMap.of("uri", URLGenerator.generateUrl("users/" + username))).build();
+            if(publicKeyUpdated)
+                response.put("public_key", existing.getPublicKey());
+
+            response.put("uri", URLGenerator.generateUrl("users/" + username));
+            return Response.status(200).entity(response).build();
         } else {
             throw new ChefAPIException(404, String.format("No user with username '%s' found", username));
         }
@@ -104,5 +133,6 @@ public class UserResource {
         public String getURI() {
             return URLGenerator.generateUrl("users/" + this.getName());
         }
+
     }
 }

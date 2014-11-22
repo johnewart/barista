@@ -38,7 +38,8 @@ public class DatabagItem {
 
     public Map<String, Object> toPutResponse() {
         Map<String, Object> result = new HashMap<>();
-        result.putAll(data);
+        if (data != null)
+            result.putAll(data);
         result.put("id", id);
         result.put("chef_type", chefType);
         result.put("data_bag", databagName);

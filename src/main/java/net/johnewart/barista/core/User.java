@@ -1,7 +1,8 @@
 package net.johnewart.barista.core;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.hibernate.validator.constraints.NotEmpty;
+import net.johnewart.barista.utils.ChefKeyGenerator;
+import net.johnewart.barista.utils.PEMPair;
 
 public class User {
     @JsonProperty("name")
@@ -29,42 +30,11 @@ public class User {
     String privateKey;
 
     public User() {
-        privateKey = "-----BEGIN RSA PRIVATE KEY-----\n" +
-                "MIIEowIBAAKCAQEAtBr5Vq2X8sP12K7EP1SyWHaCglGdoUdiR37TQwRQ8l0NvpGq\n" +
-                "GQNHqfxpZTwTAQAusuJo7BqNC+8A2X7weteLOQRB91yXKkwWVyucaDIReTSb4/iP\n" +
-                "sWkQJqSM2gMVHmWCXYNgPIBta37hzq1TddSDzgCisyb/zzZpqxKUaC3nUlj/q4E/\n" +
-                "9OL4HFNY+PyeSQI/FHBordc2vZxndSnBXXaztdf81TilYsRAUyPnmCzL5JKDrrv0\n" +
-                "AObjXBFlYP1MQ/oenM1ETQhTmZM5pMlFLuqueN6RwBJV19nrmBWF1s0dnDHJmcJW\n" +
-                "Z8YwjNuoVn+Z4irjFLsLkWDZXB9YMrwGe0qVpQIDAQABAoIBACA684PfbOG0z7oH\n" +
-                "DHeI4KGUE6belCbYb2379DJ6A0JcBKmlx5rSS3DQCsxjA8OaFMFOYxhdaABKtQw2\n" +
-                "+zIAgJmjeWqa1zJqi1TuKP88doQKNhuFz7Ef7BP+PnaFNrJJ2BqD+CTblrk165Lg\n" +
-                "0Z60eSHUW0lUIVMjmaVTndtG266QkcwM/y71D8TLOzfNzqIUyijitqqfQsG80wVm\n" +
-                "BxMlqpLjUutV9KnAnER11MfsVufao/jfTA8Wr+X64VBbDkrlSXqZmHgiBcxV4/e/\n" +
-                "soZMaIib/5nb6pf2AEYa1mykcq0QtloRjPXTxtrgbV2O8Wji6OxFHYLwlkW0rzoR\n" +
-                "YXn1/gECgYEAz/idsFyQilR3St9qOTJt4CJBQfAmn2iF6DDSfH58sG21hSwKgmRM\n" +
-                "vFg8jDSa//ROPT6s7Lw/I1A3Xeq32BnvCvL3AYVQWYPGtYgh3DHzRCJtoAR8ebFm\n" +
-                "Ib3UywVpWSHvwePTBPTnYQR7tDWwuitOdZXl3NzVGsQ1bNeLnm7iDGkCgYEA3bLq\n" +
-                "TPoE7FfcDgicYfKIOqzAcu+AzRhT3HfVE20xPnetsPeRUtj7ZohN1azjMobCcgRr\n" +
-                "H2bSYXjuecVH7ZK9cqlrrDc/4VMC/g00+zFgkKVFzq4QAAnNBEMia7lnRl2Lpa95\n" +
-                "0RzwWHfNFr9yscqsioBFxs1iVPuPWySxYHd3B90CgYBqXf7Qx9cJWQAWZEQg8uDt\n" +
-                "hLeZsOkgGMZ8JhRRpiPB3Kq9bPQHEqOIpRx6nSE1jc9CVb796Z3lQs6+kyDqPwFa\n" +
-                "uT+KIJQi5FoKWJDw3P9NtsoY0JKVbx0MXtnp6F+kPc4xfYNdAqEgprlaRyeXYDTl\n" +
-                "wP/qwWuhH/8vJuL66j1lGQKBgAxan/vSItwYuUZ+7Ff47+Z1IfRFrGPBa0rp0pHW\n" +
-                "j9vvR1qJMSvws3GvPscdbzutjsBTxrRlQmv0FTXr7GostyngjwN1wLWJrq0Bh2ZI\n" +
-                "Bh2JWC6APJwD78zBAPYHyt188P82nA8vEaWcZ21RFc8agCrnovvFDim2KvLlRI0f\n" +
-                "mx5xAoGBAJdDRA8SxuoSP0TainOkvWcHWRxG1WFi7prez5GVJ0Cj+VhCfW2gmLGP\n" +
-                "U8ZZq5bXtT4BWTUx/KO8anpjFq5jvqgnapXPgi7SHke89iXSV7xwjyP2sJDw08St\n" +
-                "gXelbeFwOfeBs55eXEQYCyFs4lzDSdm+8FKxAnxOYG5AX/VcpR3D\n" +
-                "-----END RSA PRIVATE KEY-----";
     }
 
     public User(String s) {
         username = s;
         name = s;
-        publicKey = "FOO";
-        //if(s.equals("admin"))
-        //   admin = true;
-        admin = false;
     }
 
     public User(User other) {
@@ -87,7 +57,11 @@ public class User {
     }
 
     public Boolean isAdmin() {
-        return admin;
+        if(admin == null) {
+            return Boolean.FALSE;
+        } else {
+            return admin;
+        }
     }
 
     public void update(User other) {
@@ -108,5 +82,69 @@ public class User {
 
         if(other.email != null)
             this.email = other.email;
+    }
+
+
+    public void generateKeys() {
+        PEMPair pemPair = ChefKeyGenerator.generateKeyPairAsPEM();
+        this.privateKey = new String(pemPair.privateKeyPEM);
+        this.publicKey = new String(pemPair.publicKeyPEM);
+    }
+
+    public String getPrivateKey() {
+        return privateKey;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public Boolean getAdmin() {
+        return admin;
+    }
+
+    public void setAdmin(Boolean admin) {
+        this.admin = admin;
+    }
+
+    @JsonProperty("public_key")
+    public String getPublicKey() {
+        return publicKey;
+    }
+
+    public void setPublicKey(String publicKey) {
+        this.publicKey = publicKey;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public String getSalt() {
+        return salt;
+    }
+
+    public void setSalt(String salt) {
+        this.salt = salt;
+    }
+
+    public void setPrivateKey(String privateKey) {
+        this.privateKey = privateKey;
     }
 }
